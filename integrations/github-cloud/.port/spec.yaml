@@ -1,0 +1,58 @@
+title: GitHub Cloud
+description: GitHub Cloud integration for Port Ocean
+icon: GitHub
+docs: https://docs.port.io/build-your-software-catalog/sync-data-to-catalog/git/github
+features:
+  - type: gitops
+    section: GitOps
+  - type: exporter
+    section: Git Providers
+    resources:
+      - kind: repositories
+      - kind: pull-requests
+      - kind: issues
+      - kind: teams
+      - kind: workflows
+configurations:
+  - name: token
+    required: true
+    type: string
+    description: 'GitHub personal access token with appropriate permissions (repo, read:org, workflow)'
+    sensitive: true
+  - name: organization
+    required: false
+    type: string
+    description: 'GitHub organization name for organization-wide sync'
+  - name: webhookSecret
+    required: false
+    type: string
+    description: 'Secret for verifying webhook payloads'
+    sensitive: true
+  - name: appHost
+    required: false
+    type: url
+    description: 'The host of the Port Ocean app. Used for setting up webhooks against GitHub'
+  - name: useSystemHook
+    required: false
+    type: boolean
+    description: 'If set to true, will use system hook instead of repository hooks'
+    default: false
+  - name: webhookEvents
+    required: false
+    type: object
+    description: 'Mapping of repositories to specific webhook events. If not set, will create webhooks with all events. Example: {"owner/repo": {"events": ["push", "pull_request", "issues", "workflow_run"]}}'
+    sensitive: false
+saas:
+  enabled: true
+  oauthConfiguration:
+    requiredSecrets:
+      - name: token
+        value: '(.oauthData.accessToken)'
+        description: 'GitHub OAuth2 access token'
+    valuesOverride:
+      integrationSpec:
+        appHost: '"https://api.github.com"'
+      appSpec:
+        minimumScheduledResyncInterval: '2h'
+deploymentMethodOverride:
+  - type: helm

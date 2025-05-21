@@ -1,0 +1,1 @@
+"""GitHub entity fetchers module."""

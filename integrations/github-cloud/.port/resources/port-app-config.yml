@@ -1,16 +1,86 @@
+deleteDependentEntities: true
+createMissingRelatedEntities: true
 resources:
-  - kind: githubcloud-example-kind
+  - kind: repository
     selector:
       query: 'true'
     port:
       entity:
         mappings:
-          identifier: .my_custom_id
-          title: '(.my_component + " @ " + .my_service)'
-          blueprint: '"githubcloudExampleBlueprint"'
+          identifier: .name
+          title: .name
+          blueprint: '"githubRepository"'
           properties:
-            status: .my_enum
-            text: .my_custom_text
-            component: .my_component
-            service: .my_service
-            score: .my_special_score
+            description: .description
+            url: .html_url
+            language: .language
+            visibility: .visibility
+            stars: .stargazers_count
+            forks: .forks_count
+            openIssues: .open_issues_count
+            createdAt: .created_at
+            updatedAt: .updated_at
+            pushedAt: .pushed_at
+            topics: .topics
+          relations:
+            owner: .owner.login
+            pullRequests: .__pull_requests | map(.number | tostring)
+            issues: .__issues | map(.number | tostring)
+  - kind: user
+    selector:
+      query: 'true'
+    port:
+      entity:
+        mappings:
+          identifier: .login
+          title: .login
+          blueprint: '"githubUser"'
+          properties:
+            type: .type
+            url: .html_url
+            avatarUrl: .avatar_url
+            email: .email
+  - kind: pull-request
+    selector:
+      query: 'true'
+    port:
+      entity:
+        mappings:
+          identifier: .number | tostring
+          title: .title
+          blueprint: '"githubPullRequest"'
+          properties:
+            number: .number
+            state: .state
+            title: .title
+            createdAt: .created_at
+            updatedAt: .updated_at
+            mergedAt: .merged_at
+            url: .html_url
+            additions: .additions
+            deletions: .deletions
+            changedFiles: .changed_files
+          relations:
+            repository: .base.repo.name
+            author: .user.login
+  - kind: issue
+    selector:
+      query: 'true'
+    port:
+      entity:
+        mappings:
+          identifier: .number | tostring
+          title: .title
+          blueprint: '"githubIssue"'
+          properties:
+            number: .number
+            state: .state
+            title: .title
+            createdAt: .created_at
+            updatedAt: .updated_at
+            closedAt: .closed_at
+            url: .html_url
+            labels: .labels | map(.name)
+          relations:
+            repository: .repository.name
+            author: .user.login

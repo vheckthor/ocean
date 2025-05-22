@@ -28,7 +28,6 @@ def webhook_handler(webhook_event):
 
 @pytest.mark.asyncio
 async def test_should_process_event(webhook_handler):
-    # Test valid event
     event = WebhookEvent(
         payload={},
         headers={"X-GitHub-Event": "push"},
@@ -36,13 +35,11 @@ async def test_should_process_event(webhook_handler):
     )
     assert await webhook_handler.should_process_event(event) is True
 
-    # Test invalid event
     event.headers = {"X-GitHub-Event": "invalid"}
     assert await webhook_handler.should_process_event(event) is False
 
 @pytest.mark.asyncio
 async def test_authenticate(webhook_handler):
-    # Test valid signature
     event = WebhookEvent(
         payload={},
         headers={
@@ -57,7 +54,6 @@ async def test_authenticate(webhook_handler):
         mock_hmac.return_value.hexdigest.return_value = "valid_signature"
         assert await webhook_handler.authenticate(event.payload, event.headers) is True
 
-    # Test invalid signature
     event.headers["X-Hub-Signature"] = "sha1=invalid_signature"
     with patch("port_ocean.context.ocean._port_ocean") as mock_ocean:
         mock_ocean.integration_config.get.return_value = "dummy_secret"
@@ -65,7 +61,6 @@ async def test_authenticate(webhook_handler):
 
 @pytest.mark.asyncio
 async def test_validate_payload(webhook_handler):
-    # Test valid payload
     event = WebhookEvent(
         payload={"repository": {}, "action": "opened", "pull_request": {}},
         headers={"X-GitHub-Event": "pull_request"},
@@ -73,13 +68,11 @@ async def test_validate_payload(webhook_handler):
     )
     assert await webhook_handler.validate_payload(event.payload) is True
 
-    # Test invalid payload
     event.payload = {}
     assert await webhook_handler.validate_payload(event.payload) is False
 
 @pytest.mark.asyncio
 async def test_get_matching_kinds(webhook_handler):
-    # Test push event
     event = WebhookEvent(
         payload={},
         headers={"X-GitHub-Event": "push"},
@@ -88,24 +81,20 @@ async def test_get_matching_kinds(webhook_handler):
     kinds = await webhook_handler.get_matching_kinds(event)
     assert "repository" in kinds
 
-    # Test pull request event
     event.headers["X-GitHub-Event"] = "pull_request"
     kinds = await webhook_handler.get_matching_kinds(event)
     assert "pull-request" in kinds
 
-    # Test issue event
     event.headers["X-GitHub-Event"] = "issues"
     kinds = await webhook_handler.get_matching_kinds(event)
     assert "issue" in kinds
 
-    # Test workflow event
     event.headers["X-GitHub-Event"] = "workflow_run"
     kinds = await webhook_handler.get_matching_kinds(event)
     assert "workflow" in kinds
 
 @pytest.mark.asyncio
 async def test_handle_event(webhook_handler):
-    # Test push event
     event = WebhookEvent(
         payload={
             "repository": {
@@ -144,7 +133,6 @@ async def test_handle_event(webhook_handler):
     assert repo_entity["title"] == "test-repo"
     assert repo_entity["identifier"] == "1"
 
-    # Test pull request event
     event.headers["X-GitHub-Event"] = "pull_request"
     event.body = {
         "action": "opened",
@@ -188,7 +176,6 @@ async def test_handle_event(webhook_handler):
     assert pr_entity["properties"]["number"] == 1
 
 def test_handle_push_event(webhook_handler):
-    # Test data
     payload = {
         "repository": {
             "id": 1,
@@ -217,7 +204,6 @@ def test_handle_push_event(webhook_handler):
     assert entity["properties"]["pusher"] == "test-user"
 
 def test_handle_pull_request_event(webhook_handler):
-    # Test data
     payload = {
         "action": "opened",
         "pull_request": {
@@ -256,7 +242,6 @@ def test_handle_pull_request_event(webhook_handler):
     assert entity["properties"]["mergeableState"] == "clean"
 
 def test_handle_issue_event(webhook_handler):
-    # Test data
     payload = {
         "action": "opened",
         "issue": {
@@ -293,7 +278,6 @@ def test_handle_issue_event(webhook_handler):
     assert entity["properties"]["labels"] == ["bug", "enhancement"]
 
 def test_handle_workflow_event(webhook_handler):
-    # Test data
     payload = {
         "workflow_run": {
             "id": 1,

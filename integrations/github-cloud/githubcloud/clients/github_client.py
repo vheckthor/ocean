@@ -34,9 +34,8 @@ class GitHubClient:
                     **kwargs
                 )
 
-                # Check rate limit headers
                 remaining = int(response.headers.get("X-RateLimit-Remaining", 0))
-                if remaining < 100:  # Warning threshold
+                if remaining < 100:
                     logger.warning(f"GitHub API rate limit running low: {remaining} requests remaining")
 
                 if response.status_code == 403 and "rate limit exceeded" in response.text.lower():

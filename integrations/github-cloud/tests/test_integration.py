@@ -18,7 +18,7 @@ def mock_http_client():
     client = AsyncMock()
     mock_response = AsyncMock()
     mock_response.headers = {"X-RateLimit-Remaining": "1000"}
-    mock_response.json = AsyncMock(return_value=[])  # Default empty response
+    mock_response.json = AsyncMock(return_value=[])
     client.request.return_value = mock_response
     return client
 
@@ -31,7 +31,7 @@ async def integration(mock_ocean_context, mock_http_client):
     """Create and initialize the GitHub integration."""
     integration = GitHubIntegration(mock_ocean_context)
     await integration.initialize({"token": "test-token", "org": "test-org"})
-    # Patch the http_client on the integration's GitHubClient
+
     integration.github_client.http_client = mock_http_client
     mock_ocean_context._integration = integration
     yield integration
@@ -58,7 +58,6 @@ async def test_initialize_missing_token():
 @pytest.mark.asyncio
 async def test_handle_resync(integration, mock_http_client, mock_event_context):
     """Test resync event handling."""
-    # Test data for repositories
     mock_repos_response = [
         {
             "id": 1,
@@ -87,7 +86,6 @@ async def test_handle_resync(integration, mock_http_client, mock_event_context):
         }
     ]
 
-    # Test data for pull requests
     mock_prs_response = [
         {
             "id": 1,
@@ -119,27 +117,22 @@ async def test_handle_resync(integration, mock_http_client, mock_event_context):
         }
     ]
 
-    # Mock the HTTP responses
     mock_http_client.request.return_value.json.side_effect = [
-        mock_repos_response,  # First call for repositories
-        mock_prs_response,    # Second call for pull requests
-        []                    # Empty response for other calls
+        mock_repos_response,
+        mock_prs_response,
+        []
     ]
 
-    # Test the method
     entities = [entity async for entity in integration.handle_resync()]
 
-    # Verify we got both repository and pull request entities
     assert len(entities) == 2
 
-    # Verify repository entity
     repo_entity = next(e for e in entities if e["kind"] == "repository")
     assert repo_entity["identifier"] == "test-repo"
     assert repo_entity["title"] == "test-repo"
     assert repo_entity["properties"]["description"] == "Test repository"
     assert repo_entity["properties"]["language"] == "Python"
 
-    # Verify pull request entity
     pr_entity = next(e for e in entities if e["kind"] == "pull_request")
     assert pr_entity["identifier"] == "1"
     assert pr_entity["title"] == "Test PR"
@@ -149,7 +142,6 @@ async def test_handle_resync(integration, mock_http_client, mock_event_context):
 @pytest.mark.asyncio
 async def test_handle_start_event(integration, mock_http_client, mock_event_context):
     """Test start event handling."""
-    # Test data
     mock_response = {
         "id": 1,
         "name": "test-org",
@@ -159,10 +151,8 @@ async def test_handle_start_event(integration, mock_http_client, mock_event_cont
         "updated_at": "2024-01-02T00:00:00Z"
     }
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     result = await integration.handle_start_event()
 
     assert result["identifier"] == "test-org"
@@ -174,7 +164,6 @@ async def test_handle_start_event(integration, mock_http_client, mock_event_cont
 @pytest.mark.asyncio
 async def test_register_webhook(integration, mock_http_client, mock_event_context):
     """Test webhook registration."""
-    # Test data
     mock_response = {
         "id": 1,
         "url": "https://api.github.com/repos/test-org/test-repo/hooks/1",
@@ -188,10 +177,8 @@ async def test_register_webhook(integration, mock_http_client, mock_event_contex
         }
     }
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     result = await integration.register_webhook("test-org/test-repo", "https://example.com/webhook", "test-secret")
 
     assert result["id"] == 1
@@ -206,7 +193,6 @@ async def test_register_webhook(integration, mock_http_client, mock_event_contex
 @pytest.mark.asyncio
 async def test_fetch_repositories(integration, mock_http_client, mock_event_context):
     """Test repository fetching."""
-    # Test data
     mock_response = [
         {
             "id": 1,
@@ -235,10 +221,8 @@ async def test_fetch_repositories(integration, mock_http_client, mock_event_cont
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     result = await integration.fetch_repositories({"org": "test-org"})
 
     assert len(result) == 1
@@ -250,7 +234,6 @@ async def test_fetch_repositories(integration, mock_http_client, mock_event_cont
 @pytest.mark.asyncio
 async def test_fetch_pull_requests(integration, mock_http_client, mock_event_context):
     """Test pull request fetching."""
-    # Test data
     mock_response = [
         {
             "id": 1,
@@ -277,10 +260,8 @@ async def test_fetch_pull_requests(integration, mock_http_client, mock_event_con
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     result = await integration.fetch_pull_requests({"org": "test-org", "repo": "test-repo"})
 
     assert len(result) == 1
@@ -291,7 +272,6 @@ async def test_fetch_pull_requests(integration, mock_http_client, mock_event_con
 @pytest.mark.asyncio
 async def test_fetch_issues(integration, mock_http_client, mock_event_context):
     """Test issue fetching."""
-    # Test data
     mock_response = [
         {
             "id": 1,
@@ -313,10 +293,8 @@ async def test_fetch_issues(integration, mock_http_client, mock_event_context):
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     result = await integration.fetch_issues({"org": "test-org", "repo": "test-repo"})
 
     assert len(result) == 1
@@ -327,7 +305,6 @@ async def test_fetch_issues(integration, mock_http_client, mock_event_context):
 @pytest.mark.asyncio
 async def test_fetch_teams(integration, mock_http_client, mock_event_context):
     """Test team fetching."""
-    # Test data
     mock_response = [
         {
             "id": 1,
@@ -345,10 +322,8 @@ async def test_fetch_teams(integration, mock_http_client, mock_event_context):
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     result = await integration.fetch_teams({"org": "test-org"})
 
     assert len(result) == 1
@@ -359,7 +334,6 @@ async def test_fetch_teams(integration, mock_http_client, mock_event_context):
 @pytest.mark.asyncio
 async def test_fetch_workflows(integration, mock_http_client, mock_event_context):
     """Test workflow fetching."""
-    # Test data
     mock_response = [
         {
             "id": 1,
@@ -375,10 +349,8 @@ async def test_fetch_workflows(integration, mock_http_client, mock_event_context
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     result = await integration.fetch_workflows({"org": "test-org", "repo": "test-repo"})
 
     assert len(result) == 1

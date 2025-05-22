@@ -86,7 +86,6 @@ class GitHubIntegration(
 
     async def handle_resync(self) -> AsyncGenerator[Dict[str, Any], None]:
         """Handle resync events."""
-        # Fetch repositories
         repos = await self.fetch_repositories({"org": None})
         for repo in repos:
             yield {
@@ -109,7 +108,6 @@ class GitHubIntegration(
                 }
             }
 
-            # Fetch pull requests for each repository
             prs = await self.fetch_pull_requests({"org": repo["relations"]["owner"]["title"], "repo": repo["properties"]["name"]})
             for pr in prs:
                 yield {

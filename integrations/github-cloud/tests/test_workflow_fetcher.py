@@ -18,7 +18,7 @@ def mock_http_client():
     client = AsyncMock()
     mock_response = AsyncMock()
     mock_response.headers = {"X-RateLimit-Remaining": "1000"}
-    mock_response.json = AsyncMock(return_value=[])  # Default empty response
+    mock_response.json = AsyncMock(return_value=[])
     client.request.return_value = mock_response
     return client
 
@@ -32,7 +32,6 @@ def workflow_fetcher(github_client):
 
 @pytest.mark.asyncio
 async def test_fetch_workflows(workflow_fetcher, mock_http_client, mock_event_context):
-    # Test data
     mock_response = [
         {
             "id": 1,
@@ -51,10 +50,8 @@ async def test_fetch_workflows(workflow_fetcher, mock_http_client, mock_event_co
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     entities = []
     async for entity in workflow_fetcher.fetch("test-org", "test-repo"):
         entities.append(entity)
@@ -71,9 +68,8 @@ async def test_fetch_workflows(workflow_fetcher, mock_http_client, mock_event_co
     assert entities[0]["relations"]["repository"]["title"] == "test-repo"
     assert entities[0]["relations"]["repository"]["identifier"] == "1"
 
-    # Verify the HTTP client was called correctly
     mock_http_client.request.assert_called_once()
     call_args = mock_http_client.request.call_args
-    assert call_args[0][0] == "GET"  # First positional arg is method
-    assert "/repos/test-org/test-repo/actions/workflows" in call_args[0][1]  # Second positional arg is URL
+    assert call_args[0][0] == "GET"
+    assert "/repos/test-org/test-repo/actions/workflows" in call_args[0][1]
     assert call_args[1]["headers"]["Authorization"] == "Bearer test-token"

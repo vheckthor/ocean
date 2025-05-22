@@ -54,10 +54,8 @@ async def test_fetch_teams(team_fetcher, mock_http_client, mock_event_context):
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     entities = []
     async for entity in team_fetcher.fetch("test-org"):
         entities.append(entity)
@@ -76,9 +74,8 @@ async def test_fetch_teams(team_fetcher, mock_http_client, mock_event_context):
     assert entities[0]["relations"]["organization"]["title"] == "test-org"
     assert entities[0]["relations"]["organization"]["identifier"] == "1"
 
-    # Verify the HTTP client was called correctly
     mock_http_client.request.assert_called_once()
     call_args = mock_http_client.request.call_args
-    assert call_args[0][0] == "GET"  # First positional arg is method
-    assert "/orgs/test-org/teams" in call_args[0][1]  # Second positional arg is URL
+    assert call_args[0][0] == "GET"
+    assert "/orgs/test-org/teams" in call_args[0][1]
     assert call_args[1]["headers"]["Authorization"] == "Bearer test-token"

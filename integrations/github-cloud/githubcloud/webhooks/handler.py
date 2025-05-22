@@ -2,7 +2,7 @@ import hmac
 import hashlib
 import json
 import logging
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List
 from port_ocean.context.ocean import ocean
 from port_ocean.core.handlers.webhook.abstract_webhook_processor import AbstractWebhookProcessor
 from port_ocean.core.handlers.webhook.webhook_event import EventPayload, WebhookEvent, WebhookEventRawResults

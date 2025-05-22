@@ -18,7 +18,7 @@ def mock_http_client():
     client = AsyncMock()
     mock_response = AsyncMock()
     mock_response.headers = {"X-RateLimit-Remaining": "1000"}
-    mock_response.json = AsyncMock(return_value=[])  # Default empty response
+    mock_response.json = AsyncMock(return_value=[])
     client.request.return_value = mock_response
     return client
 
@@ -67,10 +67,8 @@ async def test_fetch_pull_requests(pull_request_fetcher, mock_http_client, mock_
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     entities = []
     async for entity in pull_request_fetcher.fetch("test-org", "test-repo"):
         entities.append(entity)
@@ -96,9 +94,8 @@ async def test_fetch_pull_requests(pull_request_fetcher, mock_http_client, mock_
     assert entities[0]["relations"]["author"]["title"] == "test-user"
     assert entities[0]["relations"]["repository"]["title"] == "test-repo"
 
-    # Verify the HTTP client was called correctly
     mock_http_client.request.assert_called_once()
     call_args = mock_http_client.request.call_args
-    assert call_args[0][0] == "GET"  # First positional arg is method
-    assert "/repos/test-org/test-repo/pulls" in call_args[0][1]  # Second positional arg is URL
+    assert call_args[0][0] == "GET"
+    assert "/repos/test-org/test-repo/pulls" in call_args[0][1]
     assert call_args[1]["headers"]["Authorization"] == "Bearer test-token"

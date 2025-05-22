@@ -12,7 +12,6 @@ class IssueFetcher(BaseFetcher):
         """Fetch issues from GitHub."""
         try:
             async for issue in self.client.get_issues(owner, repo):
-                # Skip pull requests as they are handled by PullRequestFetcher
                 if "pull_request" in issue:
                     continue
                 yield self.transform(issue)

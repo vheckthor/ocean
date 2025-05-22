@@ -18,7 +18,7 @@ def mock_http_client():
     client = AsyncMock()
     mock_response = AsyncMock()
     mock_response.headers = {"X-RateLimit-Remaining": "1000"}
-    mock_response.json = AsyncMock(return_value=[])  # Default empty response
+    mock_response.json = AsyncMock(return_value=[])
     client.request.return_value = mock_response
     return client
 
@@ -32,7 +32,6 @@ def repository_fetcher(github_client):
 
 @pytest.mark.asyncio
 async def test_fetch_repositories(repository_fetcher, mock_http_client, mock_event_context):
-    # Test data
     mock_response = [
         {
             "id": 1,
@@ -61,10 +60,8 @@ async def test_fetch_repositories(repository_fetcher, mock_http_client, mock_eve
         }
     ]
 
-    # Mock the HTTP response
     mock_http_client.request.return_value.json.return_value = mock_response
 
-    # Test the method
     entities = []
     async for entity in repository_fetcher.fetch("test-org"):
         entities.append(entity)
@@ -90,9 +87,8 @@ async def test_fetch_repositories(repository_fetcher, mock_http_client, mock_eve
     assert entities[0]["properties"]["topics"] == ["test", "python"]
     assert entities[0]["relations"]["owner"]["title"] == "test-org"
 
-    # Verify the HTTP client was called correctly
     mock_http_client.request.assert_called_once()
     call_args = mock_http_client.request.call_args
-    assert call_args[0][0] == "GET"  # First positional arg is method
-    assert "/orgs/test-org/repos" in call_args[0][1]  # Second positional arg is URL
+    assert call_args[0][0] == "GET"
+    assert "/orgs/test-org/repos" in call_args[0][1]
     assert call_args[1]["headers"]["Authorization"] == "Bearer test-token"
